@@ -42,11 +42,11 @@ pub struct CreateMovie {
 }
 
 impl Message for CreateMovie {
-    type Result = Result<model::Movie, Error>;
+    type Result = Result<(), Error>;
 }
 
 impl Handler<CreateMovie> for DbExecutor {
-    type Result = Result<model::Movie, Error>;
+    type Result = Result<(), Error>;
 
     fn handle(&mut self, msg: CreateMovie, _: &mut Self::Context) -> Self::Result {
         use self::schema::movies::dsl::*;
@@ -70,7 +70,7 @@ impl Handler<CreateMovie> for DbExecutor {
             .execute(conn)
             .map_err(|_| error::ErrorInternalServerError("Error inserting person"))?;
 
-        Ok(new_movie)
+        Ok(())
     }
 }
 
@@ -82,11 +82,11 @@ pub struct CreateStudio {
 }
 
 impl Message for CreateStudio {
-    type Result = Result<model::Studio, Error>;
+    type Result = Result<(), Error>;
 }
 
 impl Handler<CreateStudio> for DbExecutor {
-    type Result = Result<model::Studio, Error>;
+    type Result = Result<(), Error>;
 
     fn handle(&mut self, msg: CreateStudio, _: &mut Self::Context) -> Self::Result {
         use self::schema::studios::dsl::*;
@@ -104,6 +104,6 @@ impl Handler<CreateStudio> for DbExecutor {
             .execute(conn)
             .map_err(|_| error::ErrorInternalServerError("Error inserting studio"))?;
 
-        Ok(new_studio)
+        Ok(())
     }
 }
