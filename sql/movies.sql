@@ -4,5 +4,7 @@ CREATE TABLE IF NOT EXISTS movies (
   movies_rating VARCHAR NOT NULL,
   movies_category VARCHAR NOT NULL,
   movies_format VARCHAR NOT NULL,
-  movies_aspect VARCHAR NOT NULL
+  movies_aspect VARCHAR NOT NULL,
+  movies_actors VARCHAR NOT NULL,
+  movies_studio_id VARCHAR NOT NULL
 );
