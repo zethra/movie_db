@@ -78,7 +78,7 @@ impl Handler<CreateMovie> for DbExecutor {
         diesel::insert_into(movies)
             .values(&new_movie)
             .execute(conn)
-            .map_err(|_| error::ErrorInternalServerError("Error inserting person"))?;
+            .map_err(|_| error::ErrorInternalServerError("Error inserting movie"))?;
 
         Ok(())
     }
@@ -106,8 +106,38 @@ impl Handler<DeleteMovie> for DbExecutor {
 
         diesel::delete(movies.filter(movies_id.eq(msg.id)))
             .execute(conn)
-            .map_err(|_| error::ErrorInternalServerError("Error inserting person"))?;
+            .map_err(|_| error::ErrorInternalServerError("Error deleting movie"))?;
 
         Ok(())
+    }
+}
+
+/*
+ * Get movie
+ */
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GetMovie {
+    pub id: String,
+}
+
+impl Message for GetMovie {
+    type Result = Result<model::Movie, Error>;
+}
+
+impl Handler<GetMovie> for DbExecutor {
+    type Result = Result<model::Movie, Error>;
+
+    fn handle(&mut self, msg: GetMovie, _: &mut Self::Context) -> Self::Result {
+        use self::schema::movies::dsl::*;
+
+        let conn: &SqliteConnection = &self.0.get().unwrap();
+
+        let mut items = movies
+            .filter(movies_id.eq(msg.id))
+            .limit(1)
+            .load::<model::Movie>(conn)
+            .map_err(|_| error::ErrorInternalServerError("Error getting movie"))?;
+
+        items.pop().ok_or(error::ErrorInternalServerError("No movie with that id"))
     }
 }

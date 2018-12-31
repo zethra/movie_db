@@ -5,7 +5,7 @@ use actix_web::{
 };
 use futures::future::Future;
 
-use crate::db::{DbExecutor, CreateMovie, DeleteMovie};
+use crate::db::{DbExecutor, CreateMovie, DeleteMovie, GetMovie};
 
 pub struct AppState {
     pub db: Addr<DbExecutor>,
@@ -30,6 +30,18 @@ pub fn delete_movie((delete_movie, state): (Query<DeleteMovie>, State<AppState>)
         .from_err()
         .and_then(|res| match res {
             Ok(_) => Ok(HttpResponse::Ok().finish()),
+            Err(_) => Ok(HttpResponse::InternalServerError().into()),
+        })
+        .responder()
+}
+
+pub fn get_movie((get_movie, state): (Query<GetMovie>, State<AppState>)) -> FutureResponse<HttpResponse> {
+    state
+        .db
+        .send(get_movie.into_inner())
+        .from_err()
+        .and_then(|res| match res {
+            Ok(movie) => Ok(HttpResponse::Ok().json(movie)),
             Err(_) => Ok(HttpResponse::InternalServerError().into()),
         })
         .responder()
