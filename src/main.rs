@@ -32,10 +32,12 @@ fn main() {
 
     // Start http server
     server::new(move || {
-        App::with_state(AppState { db: addr.clone() })
-            // enable logger
-            .middleware(middleware::Logger::default())
-            .resource("/", |r| r.method(http::Method::POST).with(create_movie))
+        vec! [
+            App::with_state(AppState { db: addr.clone() })
+                .prefix("/api")
+                .middleware(middleware::Logger::default())
+                .resource("/movie", |r| r.method(http::Method::POST).with(create_movie)),
+        ]
     }).bind("127.0.0.1:8080")
         .unwrap()
         .start();
