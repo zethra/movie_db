@@ -11,7 +11,7 @@ use crate::handlers::{AppState, create_movie, delete_movie, get_movie, update_mo
 use pretty_env_logger;
 use actix;
 use actix_web::{
-    http, middleware, server, App
+    http, middleware, server, App, fs
 };
 use actix::prelude::*;
 use diesel::prelude::*;
@@ -43,6 +43,11 @@ fn main() {
                     r.method(http::Method::PUT).with(update_movie);
                 })
                 .resource("/all_movies", |r| r.method(http::Method::GET).with(get_all_movies)),
+            App::with_state(AppState { db: addr.clone() })
+                .handler("/",
+                         fs::StaticFiles::new("./static")
+                             .unwrap()
+                             .index_file("./index.html")),
         ]
     }).bind("127.0.0.1:8080")
         .unwrap()
