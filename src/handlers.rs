@@ -1,17 +1,16 @@
 use actix::prelude::*;
-use actix_web::{
-    AsyncResponder, FutureResponse, HttpResponse, Form, Query,
-    State,
-};
+use actix_web::{AsyncResponder, Form, FutureResponse, HttpResponse, Query, State};
 use futures::future::Future;
 
-use crate::db::{DbExecutor, CreateMovie, DeleteMovie, GetMovie, UpdateMovie, GetAllMovies};
+use crate::db::{CreateMovie, DbExecutor, DeleteMovie, GetAllMovies, GetMovie, UpdateMovie};
 
 pub struct AppState {
     pub db: Addr<DbExecutor>,
 }
 
-pub fn create_movie((create_movie, state): (Form<CreateMovie>, State<AppState>)) -> FutureResponse<HttpResponse> {
+pub fn create_movie(
+    (create_movie, state): (Form<CreateMovie>, State<AppState>),
+) -> FutureResponse<HttpResponse> {
     state
         .db
         .send(create_movie.into_inner())
@@ -23,7 +22,9 @@ pub fn create_movie((create_movie, state): (Form<CreateMovie>, State<AppState>))
         .responder()
 }
 
-pub fn delete_movie((delete_movie, state): (Query<DeleteMovie>, State<AppState>)) -> FutureResponse<HttpResponse> {
+pub fn delete_movie(
+    (delete_movie, state): (Query<DeleteMovie>, State<AppState>),
+) -> FutureResponse<HttpResponse> {
     state
         .db
         .send(delete_movie.into_inner())
@@ -35,7 +36,9 @@ pub fn delete_movie((delete_movie, state): (Query<DeleteMovie>, State<AppState>)
         .responder()
 }
 
-pub fn get_movie((get_movie, state): (Query<GetMovie>, State<AppState>)) -> FutureResponse<HttpResponse> {
+pub fn get_movie(
+    (get_movie, state): (Query<GetMovie>, State<AppState>),
+) -> FutureResponse<HttpResponse> {
     state
         .db
         .send(get_movie.into_inner())
@@ -47,7 +50,9 @@ pub fn get_movie((get_movie, state): (Query<GetMovie>, State<AppState>)) -> Futu
         .responder()
 }
 
-pub fn update_movie((update_movie, state): (Form<UpdateMovie>, State<AppState>)) -> FutureResponse<HttpResponse> {
+pub fn update_movie(
+    (update_movie, state): (Form<UpdateMovie>, State<AppState>),
+) -> FutureResponse<HttpResponse> {
     state
         .db
         .send(update_movie.into_inner())
@@ -62,7 +67,7 @@ pub fn update_movie((update_movie, state): (Form<UpdateMovie>, State<AppState>))
 pub fn get_all_movies(state: State<AppState>) -> FutureResponse<HttpResponse> {
     state
         .db
-        .send(GetAllMovies{})
+        .send(GetAllMovies {})
         .from_err()
         .and_then(|res| match res {
             Ok(all_movies) => Ok(HttpResponse::Ok().json(all_movies)),

@@ -1,13 +1,13 @@
-pub mod schema;
 pub mod model;
+pub mod schema;
 
-use log::*;
+use actix::prelude::*;
+use actix_web::*;
 use diesel::prelude::*;
 use diesel::r2d2::{ConnectionManager, Pool};
-use ::actix::prelude::*;
-use actix_web::*;
+use log::*;
+use serde_derive::{Deserialize, Serialize};
 use uuid::Uuid;
-use serde_derive::{Serialize, Deserialize};
 
 include!(concat!(env!("OUT_DIR"), "/db_setup.rs"));
 
@@ -16,7 +16,8 @@ pub fn init_db(db_url: &str) {
     let conn = SqliteConnection::establish(&db_url)
         .unwrap_or_else(|_| panic!("Error connecting to {}", db_url));
     for file_name in DB_SETUP.file_names() {
-        let mut file = DB_SETUP.read(file_name)
+        let mut file = DB_SETUP
+            .read(file_name)
             .unwrap_or_else(|_| panic!("Unable to load db init file: {}", file_name));
         let mut query = String::new();
         file.read_to_string(&mut query)
@@ -138,7 +139,9 @@ impl Handler<GetMovie> for DbExecutor {
             .load::<model::Movie>(conn)
             .map_err(|_| error::ErrorInternalServerError("Error getting movie"))?;
 
-        items.pop().ok_or(error::ErrorInternalServerError("No movie with that id"))
+        items
+            .pop()
+            .ok_or(error::ErrorInternalServerError("No movie with that id"))
     }
 }
 

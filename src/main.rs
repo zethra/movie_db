@@ -6,16 +6,16 @@ mod handlers;
 extern crate diesel;
 
 use crate::db::DbExecutor;
-use crate::handlers::{AppState, create_movie, delete_movie, get_movie, update_movie, get_all_movies};
-
-use pretty_env_logger;
-use actix;
-use actix_web::{
-    http, middleware, server, App, fs
+use crate::handlers::{
+    create_movie, delete_movie, get_all_movies, get_movie, update_movie, AppState,
 };
+
+use actix;
 use actix::prelude::*;
+use actix_web::{fs, http, middleware, server, App};
 use diesel::prelude::*;
 use diesel::r2d2::{ConnectionManager, Pool};
+use pretty_env_logger;
 
 fn main() {
     pretty_env_logger::init_custom_env("MOVIEDB_LOG");
@@ -32,7 +32,7 @@ fn main() {
 
     // Start http server
     server::new(move || {
-        vec! [
+        vec![
             App::with_state(AppState { db: addr.clone() })
                 .prefix("/api")
                 .middleware(middleware::Logger::default())
@@ -42,16 +42,20 @@ fn main() {
                     r.method(http::Method::GET).with(get_movie);
                     r.method(http::Method::PUT).with(update_movie);
                 })
-                .resource("/all_movies", |r| r.method(http::Method::GET).with(get_all_movies)),
-            App::with_state(AppState { db: addr.clone() })
-                .handler("/",
-                         fs::StaticFiles::new("./static")
-                             .unwrap()
-                             .index_file("./index.html")),
+                .resource("/all_movies", |r| {
+                    r.method(http::Method::GET).with(get_all_movies)
+                }),
+            App::with_state(AppState { db: addr.clone() }).handler(
+                "/",
+                fs::StaticFiles::new("./static")
+                    .unwrap()
+                    .index_file("./index.html"),
+            ),
         ]
-    }).bind("127.0.0.1:8080")
-        .unwrap()
-        .start();
+    })
+    .bind("127.0.0.1:8080")
+    .unwrap()
+    .start();
 
     println!("Started http server: 127.0.0.1:8080");
     let _ = sys.run();
