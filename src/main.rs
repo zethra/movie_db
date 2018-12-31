@@ -6,7 +6,7 @@ mod handlers;
 extern crate diesel;
 
 use crate::db::DbExecutor;
-use crate::handlers::{AppState, create_movie, delete_movie, get_movie, update_movie};
+use crate::handlers::{AppState, create_movie, delete_movie, get_movie, update_movie, get_all_movies};
 
 use pretty_env_logger;
 use actix;
@@ -41,7 +41,8 @@ fn main() {
                     r.method(http::Method::DELETE).with(delete_movie);
                     r.method(http::Method::GET).with(get_movie);
                     r.method(http::Method::PUT).with(update_movie);
-                }),
+                })
+                .resource("/all_movies", |r| r.method(http::Method::GET).with(get_all_movies)),
         ]
     }).bind("127.0.0.1:8080")
         .unwrap()

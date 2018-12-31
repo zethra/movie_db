@@ -188,3 +188,29 @@ impl Handler<UpdateMovie> for DbExecutor {
         Ok(())
     }
 }
+
+/*
+ * Get all movies
+ */
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GetAllMovies;
+
+impl Message for GetAllMovies {
+    type Result = Result<Vec<model::Movie>, Error>;
+}
+
+impl Handler<GetAllMovies> for DbExecutor {
+    type Result = Result<Vec<model::Movie>, Error>;
+
+    fn handle(&mut self, _: GetAllMovies, _: &mut Self::Context) -> Self::Result {
+        use self::schema::movies::dsl::*;
+
+        let conn: &SqliteConnection = &self.0.get().unwrap();
+
+        let items = movies
+            .load::<model::Movie>(conn)
+            .map_err(|_| error::ErrorInternalServerError("Error getting all movies"))?;
+
+        Ok(items)
+    }
+}
