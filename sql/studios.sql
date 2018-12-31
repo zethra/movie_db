@@ -1,4 +1,0 @@
-CREATE TABLE IF NOT EXISTS studios (
-  studios_id VARCHAR PRIMARY KEY NOT NULL,
-  studios_name VARCHAR NOT NULL
-);

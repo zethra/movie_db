@@ -73,37 +73,3 @@ impl Handler<CreateMovie> for DbExecutor {
         Ok(())
     }
 }
-
-/*
- * Create a new studio
- */
-pub struct CreateStudio {
-    pub name: String,
-}
-
-impl Message for CreateStudio {
-    type Result = Result<(), Error>;
-}
-
-impl Handler<CreateStudio> for DbExecutor {
-    type Result = Result<(), Error>;
-
-    fn handle(&mut self, msg: CreateStudio, _: &mut Self::Context) -> Self::Result {
-        use self::schema::studios::dsl::*;
-
-        let uuid = Uuid::new_v4().to_string();
-        let new_studio = model::Studio {
-            id: uuid,
-            name: msg.name.clone(),
-        };
-
-        let conn: &SqliteConnection = &self.0.get().unwrap();
-
-        diesel::insert_into(studios)
-            .values(&new_studio)
-            .execute(conn)
-            .map_err(|_| error::ErrorInternalServerError("Error inserting studio"))?;
-
-        Ok(())
-    }
-}
