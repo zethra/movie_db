@@ -83,3 +83,31 @@ impl Handler<CreateMovie> for DbExecutor {
         Ok(())
     }
 }
+
+/*
+ * Delete movie
+ */
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DeleteMovie {
+    pub id: String,
+}
+
+impl Message for DeleteMovie {
+    type Result = Result<(), Error>;
+}
+
+impl Handler<DeleteMovie> for DbExecutor {
+    type Result = Result<(), Error>;
+
+    fn handle(&mut self, msg: DeleteMovie, _: &mut Self::Context) -> Self::Result {
+        use self::schema::movies::dsl::*;
+
+        let conn: &SqliteConnection = &self.0.get().unwrap();
+
+        diesel::delete(movies.filter(movies_id.eq(msg.id)))
+            .execute(conn)
+            .map_err(|_| error::ErrorInternalServerError("Error inserting person"))?;
+
+        Ok(())
+    }
+}

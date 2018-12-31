@@ -6,7 +6,7 @@ mod handlers;
 extern crate diesel;
 
 use crate::db::DbExecutor;
-use crate::handlers::{AppState, create_movie};
+use crate::handlers::{AppState, create_movie, delete_movie};
 
 use pretty_env_logger;
 use actix;
@@ -36,7 +36,10 @@ fn main() {
             App::with_state(AppState { db: addr.clone() })
                 .prefix("/api")
                 .middleware(middleware::Logger::default())
-                .resource("/movie", |r| r.method(http::Method::POST).with(create_movie)),
+                .resource("/movie", |r| {
+                    r.method(http::Method::POST).with(create_movie);
+                    r.method(http::Method::DELETE).with(delete_movie)
+                }),
         ]
     }).bind("127.0.0.1:8080")
         .unwrap()
