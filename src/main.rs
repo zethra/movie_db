@@ -1,12 +1,12 @@
 #[allow(proc_macro_derive_resolution_fallback)]
 mod db;
-mod handers;
+mod handlers;
 
 #[macro_use]
 extern crate diesel;
 
 use crate::db::DbExecutor;
-use crate::handers::{AppState, create_movie};
+use crate::handlers::{AppState, create_movie};
 
 use pretty_env_logger;
 use actix;
