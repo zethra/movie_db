@@ -7,6 +7,7 @@ use diesel::r2d2::{ConnectionManager, Pool};
 use ::actix::prelude::*;
 use actix_web::*;
 use uuid::Uuid;
+use serde_derive::{Serialize, Deserialize};
 
 include!(concat!(env!("OUT_DIR"), "/db_setup.rs"));
 
@@ -37,8 +38,16 @@ impl Actor for DbExecutor {
 /*
  * Create a new movie
  */
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct CreateMovie {
     pub title: String,
+    pub rating: String,
+    pub category: String,
+    pub format: String,
+    pub aspect: String,
+    pub actors: String,
+    pub drawer: String,
+    pub column: String,
 }
 
 impl Message for CreateMovie {
@@ -55,13 +64,13 @@ impl Handler<CreateMovie> for DbExecutor {
         let new_movie = model::Movie {
             id: uuid,
             title: msg.title.clone(),
-            rating: String::new(),
-            category: String::new(),
-            format: String::new(),
-            aspect: String::new(),
-            actors: String::new(),
-            drawer: String::new(),
-            column: String::new(),
+            rating: msg.rating.clone(),
+            category: msg.category.clone(),
+            format: msg.format.clone(),
+            aspect: msg.aspect.clone(),
+            actors: msg.actors.clone(),
+            drawer: msg.drawer.clone(),
+            column: msg.column.clone(),
         };
 
         let conn: &SqliteConnection = &self.0.get().unwrap();

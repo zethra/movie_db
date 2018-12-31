@@ -6,7 +6,7 @@ mod handers;
 extern crate diesel;
 
 use crate::db::DbExecutor;
-use crate::handers::{AppState, movies};
+use crate::handers::{AppState, create_movie};
 
 use pretty_env_logger;
 use actix;
@@ -35,7 +35,7 @@ fn main() {
         App::with_state(AppState { db: addr.clone() })
             // enable logger
             .middleware(middleware::Logger::default())
-            .resource("/{name}", |r| r.method(http::Method::GET).with(movies))
+            .resource("/", |r| r.method(http::Method::POST).with(create_movie))
     }).bind("127.0.0.1:8080")
         .unwrap()
         .start();
