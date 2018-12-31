@@ -16,7 +16,7 @@ pub fn movies((name, state): (Path<String>, State<AppState>)) -> FutureResponse<
     state
         .db
         .send(CreateMovie {
-            name: name.into_inner()
+            title: name.into_inner()
         })
         .from_err()
         .and_then(|res| match res {

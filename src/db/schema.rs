@@ -3,12 +3,13 @@
 table! {
     movies (movies_id) {
         movies_id -> Text,
-        movies_name -> Text,
+        movies_title -> Text,
         movies_rating -> Text,
         movies_category -> Text,
         movies_format -> Text,
         movies_aspect -> Text,
         movies_actors -> Text,
-        movies_studio_id -> Text,
+        movies_drawer -> Text,
+        movies_column -> Text,
     }
 }

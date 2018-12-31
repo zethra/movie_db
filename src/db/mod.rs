@@ -38,7 +38,7 @@ impl Actor for DbExecutor {
  * Create a new movie
  */
 pub struct CreateMovie {
-    pub name: String,
+    pub title: String,
 }
 
 impl Message for CreateMovie {
@@ -54,13 +54,14 @@ impl Handler<CreateMovie> for DbExecutor {
         let uuid = Uuid::new_v4().to_string();
         let new_movie = model::Movie {
             id: uuid,
-            name: msg.name.clone(),
+            title: msg.title.clone(),
             rating: String::new(),
             category: String::new(),
             format: String::new(),
             aspect: String::new(),
             actors: String::new(),
-            studio_id: String::new(),
+            drawer: String::new(),
+            column: String::new(),
         };
 
         let conn: &SqliteConnection = &self.0.get().unwrap();

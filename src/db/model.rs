@@ -8,8 +8,8 @@ use serde_derive::{Serialize, Deserialize};
 pub struct Movie {
     #[column_name = "movies_id"]
     pub id: String,
-    #[column_name = "movies_name"]
-    pub name: String,
+    #[column_name = "movies_title"]
+    pub title: String,
     #[column_name = "movies_rating"]
     pub rating: String,
     #[column_name = "movies_category"]
@@ -20,6 +20,8 @@ pub struct Movie {
     pub aspect: String,
     #[column_name = "movies_actors"]
     pub actors: String,
-    #[column_name = "movies_studio_id"]
-    pub studio_id: String,
+    #[column_name = "movies_drawer"]
+    pub drawer: String,
+    #[column_name = "movies_column"]
+    pub column: String,
 }
