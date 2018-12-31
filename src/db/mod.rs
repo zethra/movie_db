@@ -141,3 +141,50 @@ impl Handler<GetMovie> for DbExecutor {
         items.pop().ok_or(error::ErrorInternalServerError("No movie with that id"))
     }
 }
+
+/*
+ * Update new movie
+ */
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct UpdateMovie {
+    pub id: String,
+    pub title: String,
+    pub rating: String,
+    pub category: String,
+    pub format: String,
+    pub aspect: String,
+    pub actors: String,
+    pub drawer: String,
+    pub column: String,
+}
+
+impl Message for UpdateMovie {
+    type Result = Result<(), Error>;
+}
+
+impl Handler<UpdateMovie> for DbExecutor {
+    type Result = Result<(), Error>;
+
+    fn handle(&mut self, msg: UpdateMovie, _: &mut Self::Context) -> Self::Result {
+        use self::schema::movies::dsl::*;
+
+        let conn: &SqliteConnection = &self.0.get().unwrap();
+
+        let target = movies.filter(movies_id.eq(msg.id));
+        diesel::update(target)
+            .set((
+                movies_title.eq(msg.title),
+                movies_rating.eq(msg.rating),
+                movies_category.eq(msg.category),
+                movies_format.eq(msg.format),
+                movies_aspect.eq(msg.aspect),
+                movies_actors.eq(msg.actors),
+                movies_drawer.eq(msg.drawer),
+                movies_column.eq(msg.column),
+            ))
+            .execute(conn)
+            .map_err(|_| error::ErrorInternalServerError("Error inserting movie"))?;
+
+        Ok(())
+    }
+}

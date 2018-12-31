@@ -5,7 +5,7 @@ use actix_web::{
 };
 use futures::future::Future;
 
-use crate::db::{DbExecutor, CreateMovie, DeleteMovie, GetMovie};
+use crate::db::{DbExecutor, CreateMovie, DeleteMovie, GetMovie, UpdateMovie};
 
 pub struct AppState {
     pub db: Addr<DbExecutor>,
@@ -42,6 +42,18 @@ pub fn get_movie((get_movie, state): (Query<GetMovie>, State<AppState>)) -> Futu
         .from_err()
         .and_then(|res| match res {
             Ok(movie) => Ok(HttpResponse::Ok().json(movie)),
+            Err(_) => Ok(HttpResponse::InternalServerError().into()),
+        })
+        .responder()
+}
+
+pub fn update_movie((update_movie, state): (Form<UpdateMovie>, State<AppState>)) -> FutureResponse<HttpResponse> {
+    state
+        .db
+        .send(update_movie.into_inner())
+        .from_err()
+        .and_then(|res| match res {
+            Ok(_) => Ok(HttpResponse::Ok().finish()),
             Err(_) => Ok(HttpResponse::InternalServerError().into()),
         })
         .responder()

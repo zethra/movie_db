@@ -2,7 +2,7 @@ use super::schema::*;
 
 use serde_derive::{Serialize, Deserialize};
 
-#[derive(Debug, Clone, Serialize, Deserialize, Queryable, Identifiable, Insertable)]
+#[derive(Debug, Clone, Serialize, Deserialize, Queryable, Identifiable, Insertable, AsChangeset)]
 #[table_name = "movies"]
 #[primary_key(movies_id)]
 pub struct Movie {
