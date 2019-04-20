@@ -22,6 +22,19 @@ main =
 -- Model
 
 
+type alias Movie =
+    { id : Int
+    , title : String
+    , rating : String
+    , category : String
+    , format : String
+    , aspect : String
+    , actors : String
+    , drawer : String
+    , column : String
+    }
+
+
 type alias Model =
     Int
 
