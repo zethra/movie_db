@@ -1,7 +1,7 @@
 pub mod model;
 pub mod schema;
 
-use actix::prelude::*;
+use ::actix::prelude::*;
 use actix_web::*;
 use diesel::prelude::*;
 use diesel::r2d2::{ConnectionManager, Pool};

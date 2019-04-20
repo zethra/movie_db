@@ -1,35 +1,66 @@
+module Main exposing (Model, Msg(..), init, main, update, view)
+
 import Browser
 import Browser.Dom
+import Browser.Navigation as Nav
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
+import Http
+
 
 main =
-    Browser.sandbox { init = init, update = update, view = view }
-
-type alias Model = Int
-
-init: Model
-init = 0
-
-
-type Msg = I | D
+    Browser.element
+        { init = init
+        , update = update
+        , subscriptions = subscriptions
+        , view = view
+        }
 
 
-update : Msg -> Model -> Model
+
+-- Model
+
+
+type alias Model =
+    Int
+
+
+init : () -> ( Model, Cmd Msg )
+init _ =
+    ( 0, Cmd.none )
+
+
+
+-- Update
+
+
+type Msg
+    = NOP
+
+
+update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
-    case msg of
-        I ->
-            model + 1
+    ( model, Cmd.none )
 
-        D ->
-            model - 1
+
+
+-- Subscriptions
+
+
+subscriptions : Model -> Sub Msg
+subscriptions model =
+    Sub.none
+
+
+
+-- View
 
 
 view : Model -> Html Msg
 view model =
     div []
-        [ button [ onClick D ] [text "-" ]
-        , div [] [text (String.fromInt model)]
-        , button [ onClick I] [text "+"]
+        [ header []
+            [ h1 [] [ text "Movie DB" ]
+            ]
         ]
