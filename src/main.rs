@@ -1,13 +1,10 @@
-#[allow(proc_macro_derive_resolution_fallback)]
-mod db;
-mod handlers;
-
-#[macro_use]
-extern crate diesel;
-
-use crate::db::DbExecutor;
-use crate::handlers::{
-    create_movie, delete_movie, get_all_movies, get_movie, update_movie, AppState,
+use moviedb::{
+    self,
+    db,
+    db::DbExecutor,
+    handlers::{
+        create_movie, delete_movie, get_all_movies, get_movie, update_movie, AppState,
+    },
 };
 
 use actix;

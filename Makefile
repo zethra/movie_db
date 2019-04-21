@@ -1,22 +1,22 @@
-DEBUG_DIR = dist/debug
-RELEASE_DIR = dist/release
-DEBUG_STATIC_DIR = dist/debug/static
-RELEASE_STATIC_DIR = dist/release/static
-DEBUG_BIN = dist/debug/movie_db
-RELEASE_BIN = dist/release/movie_db
-
-RS_SRC = $(wildcard *.rs)
-WEB_DIR = web
-ELM_SRC_DIR = $(WEB_DIR)/src
-HTML_SRC = $(wildcard *.html)
+RS_DIR = src
+RS_SRC = $(RS_DIR)/$(shell find src -name *.rs)
+DEBUG_BIN = target/debug/move_db
+RELEASE_BIN = target/release/move_db
+WASM_SRC = $(shell find frontend/src -name '*.rs')
+WASM_BIN_DIR = frontend/target/wasm32-unknown-unknown/release
+WASM_BIN = $(WASM_BIN_DIR)/frontend.wasm
+JS_BIN = $(WASM_BIN_DIR)/frontend.js
+STATIC = $(shell find frontend/static | tail -n +2)
 
 .PHONY: debug
-debug: rust_debug html_debug
+debug: rust_debug wasm
+
+.PHONY: release
+release: rust_release wasm
 
 .PHONY: run
 run: debug
-	cd dist/debug && \
-	./movie_db
+	cargo run
 
 .PHONY: rust_debug
 rust_debug: $(DEBUG_BIN)
@@ -24,30 +24,24 @@ rust_debug: $(DEBUG_BIN)
 .PHONY: rust_release
 rust_release: $(RELEASE_BIN)
 
-.PHONY: html_debug
-html_debug: $(DEBUG_STATIC_DIR)/index.html
+.PHONY: static
+static: $(STATIC)
+	mkdir static
+	cp -R frontend/static/* static/
 
-
-$(DEBUG_DIR):
-	mkdir -p $@
-
-$(RELEASE_DIR):
-	mkdir -p $@
+.PHONY: wasm
+wasm: $(WASM_BIN) $(JS_BIN) static
+	cp $(WASM_BIN) static/
+	cp $(JS_BIN) static/
 
 $(DEBUG_BIN): $(RS_SRC)
 	cargo build
-	cp target/debug/movie_db $@
 
 $(RELEASE_BIN): $(RS_SRC)
 	cargo build --release
-	cp target/release/movie_db $@
 
-$(DEBUG_STATIC_DIR):
-	mkdir -p $@
+$(WASM_BIN): $(WASM_SRC)
+	cd frontend && \
+	cargo web build --release
 
-$(RELEASE_STATIC_DIR):
-	mkdir -p $@
-
-$(DEBUG_STATIC_DIR)/index.html: $(ELM_SRC_DIR)/Main.elm
-	cd $(WEB_DIR) && \
-	elm make --output=../$@ src/Main.elm
+$(JS_BIN): $(WASM_BIN)

@@ -1,0 +1,35 @@
+[
+  {
+    "id": "98beff1a-ae42-4b0e-a310-bbfa9ca8f9a9",
+    "title": "Test Movie",
+    "rating": "R",
+    "category": "Kids",
+    "format": "DVD",
+    "aspect": "Widescreen",
+    "actors": "John Doe, Jane Doe",
+    "drawer": "2",
+    "column": "Middle"
+  },
+  {
+    "id": "678b2b58-1065-4c5f-91b5-d8d63d8687c0",
+    "title": "Test Movie",
+    "rating": "PG",
+    "category": "Kids",
+    "format": "DVD",
+    "aspect": "Widescreen",
+    "actors": "John Doe, Jane Doe",
+    "drawer": "2",
+    "column": "Middle"
+  },
+  {
+    "id": "362b2ff8-b17d-4124-8bd2-629a9217f485",
+    "title": "Test Movie",
+    "rating": "PG",
+    "category": "Kids",
+    "format": "DVD",
+    "aspect": "Widescreen",
+    "actors": "John Doe, Jane Doe",
+    "drawer": "2",
+    "column": "Middle"
+  }
+]

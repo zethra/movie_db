@@ -1,6 +1,8 @@
 /target
+/frontend/target
 **/*.rs.bk
 *.db
 /.idea
 /web/elm-stuff
 /dist
+/static
