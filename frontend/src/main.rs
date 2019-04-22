@@ -5,7 +5,7 @@ use yew::format::{Nothing, Json};
 use yew::services::fetch::{FetchService, FetchTask, Request, Response};
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
-pub struct Movie {
+struct Movie {
     pub id: String,
     pub title: String,
     pub rating: String,
@@ -17,11 +17,17 @@ pub struct Movie {
     pub column: String,
 }
 
+enum Scene {
+    Loading,
+    Main,
+}
+
 struct Model {
     link: ComponentLink<Model>,
     data: Option<Vec<Movie>>,
     fetch_service: FetchService,
     ft: Option<FetchTask>,
+    scene: Scene,
 }
 
 enum Msg {
@@ -40,8 +46,9 @@ impl Component for Model {
             data: None,
             fetch_service: FetchService::new(),
             ft: None,
+            scene: Scene::Loading,
         };
-        model.load_movies("/all_movies.json");
+        model.load_movies("/api/all_movies");
         model
     }
 
@@ -49,6 +56,7 @@ impl Component for Model {
         match msg {
             Msg::FetchMoviesReady(data) => {
                 self.data = data.ok();
+                self.scene = Scene::Main;
             }
             Msg::FetchMovies => {
                 self.load_movies("/api/all_movies");
@@ -63,20 +71,26 @@ impl Component for Model {
 
 impl Renderable<Model> for Model {
     fn view(&self) -> Html<Model> {
-        if let Some(movies) = &self.data {
-            html! {
-                <div>
-                    <button onclick=|_| Msg::FetchMovies,>{ "Fetch Movies" }</button>
-                    <ul>
-                        { for movies.iter().map(view_movie) }
-                    </ul>
-                </div>
+        match self.scene {
+            Scene::Loading => {
+                view_page(html! {
+                    <div>{ "Loading" }</div>
+                })
             }
-        } else {
-            html! {
-                <div>
-                    <button onclick=|_| Msg::FetchMovies,>{ "Fetch Movies" }</button>
-                </div>
+            Scene::Main => {
+                if let Some(movies) = &self.data {
+                    view_page(html! {
+                        <section class="list",>
+                            { for movies.iter().enumerate().map(view_movie_title) }
+                        </section>
+                    })
+                } else {
+                    view_page(html! {
+                        <div>
+                            { "Error" }
+                        </div>
+                    })
+                }
             }
         }
     }
@@ -100,9 +114,24 @@ impl Model {
     }
 }
 
-fn view_movie(movie: &Movie) -> Html<Model> {
+fn view_movie_title((idx, movie): (usize, &Movie)) -> Html<Model> {
+    if idx % 2 == 0 {
+        html! { <div class="even",> { movie.title.clone() } </div> }
+    } else {
+        html! { <div class="odd",> { movie.title.clone() } </div> }
+    }
+}
+
+fn view_page(main: Html<Model>) -> Html<Model> {
     html! {
-        <li>{ movie.title.clone() }</li>
+        <div>
+            <header>
+                <h1>{ "Movie DB" }</h1>
+            </header>
+            <main>
+                { main }
+            </main>
+        </div>
     }
 }
 

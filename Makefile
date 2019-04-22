@@ -26,7 +26,7 @@ rust_release: $(RELEASE_BIN)
 
 .PHONY: static
 static: $(STATIC)
-	mkdir static
+	mkdir -p static
 	cp -R frontend/static/* static/
 
 .PHONY: wasm
