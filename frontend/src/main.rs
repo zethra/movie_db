@@ -1,10 +1,14 @@
+#![recursion_limit="128"]
 use failure::Error;
 use serde_derive::{Deserialize, Serialize};
 use yew::{html, start_app, Component, ComponentLink, Html, Renderable, ShouldRender};
 use yew::format::{Nothing, Json};
 use yew::services::fetch::{FetchService, FetchTask, Request, Response};
 
-#[derive(Debug, Clone, Deserialize, Serialize)]
+const ALL_MOVIES: &str = "/api/all_movies";
+const MOVIE: &str = "/api/movie";
+
+#[derive(Debug, Clone, Deserialize, Serialize, Default)]
 struct Movie {
     pub id: String,
     pub title: String,
@@ -19,21 +23,31 @@ struct Movie {
 
 enum Scene {
     Loading,
-    Main,
+    Main(Option<Vec<Movie>>),
+    AddMovie(Movie),
 }
 
 struct Model {
     link: ComponentLink<Model>,
-    data: Option<Vec<Movie>>,
     fetch_service: FetchService,
     ft: Option<FetchTask>,
     scene: Scene,
 }
 
 enum Msg {
-    FetchMovies,
-    FetchMoviesReady(Result<Vec<Movie>, Error>),
+    Main,
+    MainReady(Result<Vec<Movie>, Error>),
     FetchError,
+    AddMovie,
+    AddMovieEditTitle(String),
+    AddMovieEditRating(String),
+    AddMovieEditCategory(String),
+    AddMovieEditFormat(String),
+    AddMovieEditAspect(String),
+    AddMovieEditActors(String),
+    AddMovieEditDrawer(String),
+    AddMovieEditColumn(String),
+    AddMovieSubmit,
 }
 
 impl Component for Model {
@@ -43,26 +57,87 @@ impl Component for Model {
     fn create(_: Self::Properties, link: ComponentLink<Self>) -> Self {
         let mut model = Model {
             link,
-            data: None,
             fetch_service: FetchService::new(),
             ft: None,
             scene: Scene::Loading,
         };
-        model.load_movies("/api/all_movies");
+        model.load_movies(ALL_MOVIES);
         model
     }
 
     fn update(&mut self, msg: Self::Message) -> ShouldRender {
         match msg {
-            Msg::FetchMoviesReady(data) => {
-                self.data = data.ok();
-                self.scene = Scene::Main;
+            Msg::MainReady(data) => {
+                self.scene = Scene::Main(data.ok());
             }
-            Msg::FetchMovies => {
-                self.load_movies("/api/all_movies");
+            Msg::Main => {
+                self.load_movies(ALL_MOVIES);
             }
-            _ => {
-                unimplemented!();
+            Msg::AddMovie => {
+                self.scene = Scene::AddMovie(Default::default());
+            }
+            Msg::AddMovieEditTitle(data) => {
+                if let Scene::AddMovie(movie) = &mut self.scene {
+                    movie.title = data;
+                }
+            }
+            Msg::AddMovieEditRating(data) => {
+                if let Scene::AddMovie(movie) = &mut self.scene {
+                    movie.rating = data;
+                }
+            }
+            Msg::AddMovieEditCategory(data) => {
+                if let Scene::AddMovie(movie) = &mut self.scene {
+                    movie.category = data;
+                }
+            }
+            Msg::AddMovieEditFormat(data) => {
+                if let Scene::AddMovie(movie) = &mut self.scene {
+                    movie.format = data;
+                }
+            }
+            Msg::AddMovieEditAspect(data) => {
+                if let Scene::AddMovie(movie) = &mut self.scene {
+                    movie.aspect = data;
+                }
+            }
+            Msg::AddMovieEditActors(data) => {
+                if let Scene::AddMovie(movie) = &mut self.scene {
+                    movie.actors = data;
+                }
+            }
+            Msg::AddMovieEditDrawer(data) => {
+                if let Scene::AddMovie(movie) = &mut self.scene {
+                    movie.drawer = data;
+                }
+            }
+            Msg::AddMovieEditColumn(data) => {
+                if let Scene::AddMovie(movie) = &mut self.scene {
+                    movie.column = data;
+                }
+            }
+            Msg::AddMovieSubmit => {
+                if let Scene::AddMovie(movie) = &self.scene {
+                    let callback = self.link
+                        .send_back(move |response: Response<Json<Result<(), Error>>>| {
+                            let (meta, _) = response.into_parts();
+                            println!("META: {:?}", meta);
+                            if meta.status.is_success() {
+                                Msg::Main
+                            } else {
+                                Msg::FetchError
+                            }
+                        });
+                    let request = Request::post(MOVIE)
+                        .header("Content-Type", "application/json")
+                        .body(Json(&movie))
+                        .expect("Failed to construct request");
+                    let task = self.fetch_service.fetch(request, callback);
+                    self.ft = Some(task);
+                }
+            }
+            Msg::FetchError => {
+                println!("Fetch Error");
             }
         }
         true
@@ -71,14 +146,14 @@ impl Component for Model {
 
 impl Renderable<Model> for Model {
     fn view(&self) -> Html<Model> {
-        match self.scene {
+        match &self.scene {
             Scene::Loading => {
                 view_page(html! {
                     <div>{ "Loading" }</div>
                 })
             }
-            Scene::Main => {
-                if let Some(movies) = &self.data {
+            Scene::Main(movies) => {
+                if let Some(movies) = &movies {
                     view_page(html! {
                         <section class="list",>
                             { for movies.iter().enumerate().map(view_movie_title) }
@@ -92,6 +167,45 @@ impl Renderable<Model> for Model {
                     })
                 }
             }
+            Scene::AddMovie(movie) => {
+                view_page(html! {
+                <div>
+                    <label>{ "Title" }</label>
+                    <input type="text",
+                           value=&movie.title,
+                           oninput=|e| Msg::AddMovieEditTitle(e.value), />
+                    <label>{ "Rating" }</label>
+                    <input type="text",
+                           value=&movie.rating,
+                           oninput=|e| Msg::AddMovieEditRating(e.value), />
+                    <label>{ "Category" }</label>
+                    <input type="text",
+                           value=&movie.category,
+                           oninput=|e| Msg::AddMovieEditCategory(e.value), />
+                    <label>{ "Format" }</label>
+                    <input type="text",
+                           value=&movie.format,
+                           oninput=|e| Msg::AddMovieEditFormat(e.value), />
+                    <label>{ "Aspect" }</label>
+                    <input type="text",
+                           value=&movie.aspect,
+                           oninput=|e| Msg::AddMovieEditAspect(e.value), />
+                    <label>{ "Actors" }</label>
+                    <input type="text",
+                           value=&movie.actors,
+                           oninput=|e| Msg::AddMovieEditActors(e.value), />
+                    <label>{ "Drawer" }</label>
+                    <input type="text",
+                           value=&movie.actors,
+                           oninput=|e| Msg::AddMovieEditDrawer(e.value), />
+                    <label>{ "Column" }</label>
+                    <input type="text",
+                           value=&movie.actors,
+                           oninput=|e| Msg::AddMovieEditColumn(e.value), />
+                    <button onclick=|_| Msg::AddMovieSubmit,>{ "Add" }</button>
+                </div>
+                })
+            }
         }
     }
 }
@@ -103,7 +217,7 @@ impl Model {
                 let (meta, Json(data)) = response.into_parts();
                 println!("META: {:?}, {:?}", meta, data);
                 if meta.status.is_success() {
-                    Msg::FetchMoviesReady(data)
+                    Msg::MainReady(data)
                 } else {
                     Msg::FetchError
                 }
@@ -126,7 +240,8 @@ fn view_page(main: Html<Model>) -> Html<Model> {
     html! {
         <div>
             <header>
-                <h1>{ "Movie DB" }</h1>
+                <h1 onclick=|_| Msg::Main,>{ "Movie DB" }</h1>
+                <a onclick=|_| Msg::AddMovie,>{ "Add Movie" }</a>
             </header>
             <main>
                 { main }

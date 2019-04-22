@@ -1,5 +1,5 @@
 use actix::prelude::*;
-use actix_web::{AsyncResponder, Form, FutureResponse, HttpResponse, Query, State};
+use actix_web::{AsyncResponder, Json, FutureResponse, HttpResponse, Query, State};
 use futures::future::Future;
 
 use crate::db::{CreateMovie, DbExecutor, DeleteMovie, GetAllMovies, GetMovie, UpdateMovie};
@@ -9,7 +9,7 @@ pub struct AppState {
 }
 
 pub fn create_movie(
-    (create_movie, state): (Form<CreateMovie>, State<AppState>),
+    (create_movie, state): (Json<CreateMovie>, State<AppState>),
 ) -> FutureResponse<HttpResponse> {
     state
         .db
@@ -51,7 +51,7 @@ pub fn get_movie(
 }
 
 pub fn update_movie(
-    (update_movie, state): (Form<UpdateMovie>, State<AppState>),
+    (update_movie, state): (Json<UpdateMovie>, State<AppState>),
 ) -> FutureResponse<HttpResponse> {
     state
         .db

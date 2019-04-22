@@ -22,7 +22,7 @@ pub fn init_db(db_url: &str) {
         let mut query = String::new();
         file.read_to_string(&mut query)
             .unwrap_or_else(|_| panic!("Unable to load db init query: {}", file_name));
-        debug!("Initalizing table: \n{}", query);
+        debug!("Initializing table: \n{}", query);
         ::diesel::sql_query(query)
             .execute(&conn)
             .expect("Fail to init db");
