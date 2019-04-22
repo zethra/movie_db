@@ -169,7 +169,8 @@ impl Renderable<Model> for Model {
             }
             Scene::AddMovie(movie) => {
                 view_page(html! {
-                <div>
+                <div class="padded",>
+                <div class="add_movie",>
                     <label>{ "Title" }</label>
                     <input type="text",
                            value=&movie.title,
@@ -196,13 +197,14 @@ impl Renderable<Model> for Model {
                            oninput=|e| Msg::AddMovieEditActors(e.value), />
                     <label>{ "Drawer" }</label>
                     <input type="text",
-                           value=&movie.actors,
+                           value=&movie.drawer,
                            oninput=|e| Msg::AddMovieEditDrawer(e.value), />
                     <label>{ "Column" }</label>
                     <input type="text",
-                           value=&movie.actors,
+                           value=&movie.column,
                            oninput=|e| Msg::AddMovieEditColumn(e.value), />
-                    <button onclick=|_| Msg::AddMovieSubmit,>{ "Add" }</button>
+                </div>
+                <button onclick=|_| Msg::AddMovieSubmit,>{ "Add" }</button>
                 </div>
                 })
             }
