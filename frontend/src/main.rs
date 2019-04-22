@@ -27,7 +27,7 @@ struct Model {
 enum Msg {
     FetchMovies,
     FetchMoviesReady(Result<Vec<Movie>, Error>),
-    FetchError
+    FetchError,
 }
 
 impl Component for Model {
@@ -84,15 +84,16 @@ impl Renderable<Model> for Model {
 
 impl Model {
     fn load_movies(&mut self, url: &str) {
-        let callback = self.link.send_back(move |response: Response<Json<Result<Vec<Movie>, Error>>>| {
-            let (meta, Json(data)) = response.into_parts();
-            println!("META: {:?}, {:?}", meta, data);
-            if meta.status.is_success() {
-                Msg::FetchMoviesReady(data)
-            } else {
-                Msg::FetchError
-            }
-        });
+        let callback = self.link
+            .send_back(move |response: Response<Json<Result<Vec<Movie>, Error>>>| {
+                let (meta, Json(data)) = response.into_parts();
+                println!("META: {:?}, {:?}", meta, data);
+                if meta.status.is_success() {
+                    Msg::FetchMoviesReady(data)
+                } else {
+                    Msg::FetchError
+                }
+            });
         let request = Request::get(url).body(Nothing).unwrap();
         let task = self.fetch_service.fetch(request, callback);
         self.ft = Some(task);
