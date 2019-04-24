@@ -1,4 +1,5 @@
-#![recursion_limit="128"]
+#![recursion_limit = "128"]
+
 use failure::Error;
 use serde_derive::{Deserialize, Serialize};
 use yew::{html, start_app, Component, ComponentLink, Html, Renderable, ShouldRender};
@@ -21,10 +22,17 @@ struct Movie {
     pub column: String,
 }
 
+#[derive(Debug, Clone)]
 enum Scene {
     Loading,
     Main(Option<Vec<Movie>>),
-    AddMovie(Movie),
+    AddMovie(Movie, CRUDType),
+}
+
+#[derive(Debug, Clone)]
+enum CRUDType {
+    Create,
+    Update,
 }
 
 struct Model {
@@ -34,11 +42,14 @@ struct Model {
     scene: Scene,
 }
 
+#[derive(Debug)]
 enum Msg {
     Main,
     MainReady(Result<Vec<Movie>, Error>),
     FetchError,
     AddMovie,
+    UpdateMovie(String),
+    UpdateMovieReady(Movie),
     AddMovieEditTitle(String),
     AddMovieEditRating(String),
     AddMovieEditCategory(String),
@@ -74,50 +85,70 @@ impl Component for Model {
                 self.load_movies(ALL_MOVIES);
             }
             Msg::AddMovie => {
-                self.scene = Scene::AddMovie(Default::default());
+                self.scene = Scene::AddMovie(Default::default(), CRUDType::Create);
+            }
+            Msg::UpdateMovie(id) => {
+                let callback = self.link
+                    .send_back(move |response: Response<Json<Result<Movie, Error>>>| {
+                        let (meta, Json(data)) = response.into_parts();
+                        println!("META: {:?}, {:?}", meta, data);
+                        if meta.status.is_success() {
+                            Msg::UpdateMovieReady(data.unwrap())
+                        } else {
+                            Msg::FetchError
+                        }
+                    });
+                let mut uri = String::new();
+                uri.push_str(MOVIE);
+                uri.push_str(&format!("?id={}", id));
+                let request = Request::get(&uri)
+                    .body(Nothing)
+                    .expect("Failed to construct request");
+                let task = self.fetch_service.fetch(request, callback);
+                self.ft = Some(task);
             }
             Msg::AddMovieEditTitle(data) => {
-                if let Scene::AddMovie(movie) = &mut self.scene {
+                if let Scene::AddMovie(movie, _) = &mut self.scene {
                     movie.title = data;
                 }
             }
             Msg::AddMovieEditRating(data) => {
-                if let Scene::AddMovie(movie) = &mut self.scene {
+                if let Scene::AddMovie(movie, _) = &mut self.scene {
                     movie.rating = data;
                 }
             }
             Msg::AddMovieEditCategory(data) => {
-                if let Scene::AddMovie(movie) = &mut self.scene {
+                if let Scene::AddMovie(movie, _) = &mut self.scene {
                     movie.category = data;
                 }
             }
             Msg::AddMovieEditFormat(data) => {
-                if let Scene::AddMovie(movie) = &mut self.scene {
+                if let Scene::AddMovie(movie, _) = &mut self.scene {
                     movie.format = data;
                 }
             }
             Msg::AddMovieEditAspect(data) => {
-                if let Scene::AddMovie(movie) = &mut self.scene {
+                if let Scene::AddMovie(movie, _) = &mut self.scene {
                     movie.aspect = data;
                 }
             }
             Msg::AddMovieEditActors(data) => {
-                if let Scene::AddMovie(movie) = &mut self.scene {
+                if let Scene::AddMovie(movie, _) = &mut self.scene {
                     movie.actors = data;
                 }
             }
             Msg::AddMovieEditDrawer(data) => {
-                if let Scene::AddMovie(movie) = &mut self.scene {
+                if let Scene::AddMovie(movie, _) = &mut self.scene {
                     movie.drawer = data;
                 }
             }
             Msg::AddMovieEditColumn(data) => {
-                if let Scene::AddMovie(movie) = &mut self.scene {
+                if let Scene::AddMovie(movie, _) = &mut self.scene {
                     movie.column = data;
                 }
             }
             Msg::AddMovieSubmit => {
-                if let Scene::AddMovie(movie) = &self.scene {
+                if let Scene::AddMovie(movie, crud_type) = &self.scene {
                     let callback = self.link
                         .send_back(move |response: Response<Json<Result<(), Error>>>| {
                             let (meta, _) = response.into_parts();
@@ -128,13 +159,20 @@ impl Component for Model {
                                 Msg::FetchError
                             }
                         });
-                    let request = Request::post(MOVIE)
-                        .header("Content-Type", "application/json")
-                        .body(Json(&movie))
-                        .expect("Failed to construct request");
+                    let mut builder = match crud_type {
+                        CRUDType::Create => Request::post(MOVIE),
+                        CRUDType::Update => Request::put(MOVIE),
+                    };
+                    let request = builder
+                            .header("Content-Type", "application/json")
+                            .body(Json(&movie))
+                            .expect("Failed to construct request");
                     let task = self.fetch_service.fetch(request, callback);
                     self.ft = Some(task);
                 }
+            }
+            Msg::UpdateMovieReady(movie) => {
+                self.scene = Scene::AddMovie(movie, CRUDType::Update);
             }
             Msg::FetchError => {
                 println!("Fetch Error");
@@ -167,46 +205,12 @@ impl Renderable<Model> for Model {
                     })
                 }
             }
-            Scene::AddMovie(movie) => {
-                view_page(html! {
-                <div class="padded",>
-                <div class="add_movie",>
-                    <label>{ "Title" }</label>
-                    <input type="text",
-                           value=&movie.title,
-                           oninput=|e| Msg::AddMovieEditTitle(e.value), />
-                    <label>{ "Rating" }</label>
-                    <input type="text",
-                           value=&movie.rating,
-                           oninput=|e| Msg::AddMovieEditRating(e.value), />
-                    <label>{ "Category" }</label>
-                    <input type="text",
-                           value=&movie.category,
-                           oninput=|e| Msg::AddMovieEditCategory(e.value), />
-                    <label>{ "Format" }</label>
-                    <input type="text",
-                           value=&movie.format,
-                           oninput=|e| Msg::AddMovieEditFormat(e.value), />
-                    <label>{ "Aspect" }</label>
-                    <input type="text",
-                           value=&movie.aspect,
-                           oninput=|e| Msg::AddMovieEditAspect(e.value), />
-                    <label>{ "Actors" }</label>
-                    <input type="text",
-                           value=&movie.actors,
-                           oninput=|e| Msg::AddMovieEditActors(e.value), />
-                    <label>{ "Drawer" }</label>
-                    <input type="text",
-                           value=&movie.drawer,
-                           oninput=|e| Msg::AddMovieEditDrawer(e.value), />
-                    <label>{ "Column" }</label>
-                    <input type="text",
-                           value=&movie.column,
-                           oninput=|e| Msg::AddMovieEditColumn(e.value), />
-                </div>
-                <button onclick=|_| Msg::AddMovieSubmit,>{ "Add" }</button>
-                </div>
-                })
+            Scene::AddMovie(movie, crud_type) => {
+                let title = match crud_type {
+                    CRUDType::Create => "Add Movie",
+                    CRUDType::Update => "Edit Movie",
+                };
+                view_page(view_edit_movie(movie, title))
             }
         }
     }
@@ -231,12 +235,61 @@ impl Model {
 }
 
 fn view_movie_title((idx, movie): (usize, &Movie)) -> Html<Model> {
-    if idx % 2 == 0 {
-        html! { <div class="even",> { movie.title.clone() } </div> }
-    } else {
-        html! { <div class="odd",> { movie.title.clone() } </div> }
+    // TODO Make this better
+    let class = if idx % 2 == 0 { "even" } else { "odd" };
+    let title = movie.title.clone();
+    let id = movie.id.clone();
+    html! {
+        <div class=class,>
+            <p>{ title }</p>
+            <a onclick=|_| Msg::UpdateMovie(id.clone()),>{ "Edit" }</a>
+        </div>
     }
 }
+
+fn view_edit_movie(movie: &Movie, title: &str) -> Html<Model> {
+    html! {
+        <div class="padded",>
+            <h2>{ title }</h2>
+        <div class="add_movie",>
+            <label>{ "Title" }</label>
+            <input type="text",
+                   value=&movie.title,
+                   oninput=|e| Msg::AddMovieEditTitle(e.value), />
+            <label>{ "Rating" }</label>
+            <input type="text",
+                   value=&movie.rating,
+                   oninput=|e| Msg::AddMovieEditRating(e.value), />
+            <label>{ "Category" }</label>
+            <input type="text",
+                   value=&movie.category,
+                   oninput=|e| Msg::AddMovieEditCategory(e.value), />
+            <label>{ "Format" }</label>
+            <input type="text",
+                   value=&movie.format,
+                   oninput=|e| Msg::AddMovieEditFormat(e.value), />
+            <label>{ "Aspect" }</label>
+            <input type="text",
+                   value=&movie.aspect,
+                   oninput=|e| Msg::AddMovieEditAspect(e.value), />
+            <label>{ "Actors" }</label>
+            <input type="text",
+                   value=&movie.actors,
+                   oninput=|e| Msg::AddMovieEditActors(e.value), />
+            <label>{ "Drawer" }</label>
+            <input type="text",
+                   value=&movie.drawer,
+                   oninput=|e| Msg::AddMovieEditDrawer(e.value), />
+            <label>{ "Column" }</label>
+            <input type="text",
+                   value=&movie.column,
+                   oninput=|e| Msg::AddMovieEditColumn(e.value), />
+        </div>
+        <button onclick=|_| Msg::AddMovieSubmit,>{ "Save" }</button>
+        </div>
+    }
+}
+
 
 fn view_page(main: Html<Model>) -> Html<Model> {
     html! {

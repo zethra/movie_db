@@ -7,6 +7,15 @@
     padding: 0.2em 0 0.2em 1em;
 }
 
+.list div p {
+    float: left;
+}
+
+.list div a {
+    float: right;
+    margin-right: 1em;
+}
+
 .odd {
     background-color: rgb(34, 37, 38);
 }
