@@ -50,6 +50,7 @@ enum Msg {
     AddMovie,
     UpdateMovie(String),
     UpdateMovieReady(Movie),
+    DeleteMovie(String),
     AddMovieEditTitle(String),
     AddMovieEditRating(String),
     AddMovieEditCategory(String),
@@ -106,6 +107,27 @@ impl Component for Model {
                     .expect("Failed to construct request");
                 let task = self.fetch_service.fetch(request, callback);
                 self.ft = Some(task);
+            }
+            Msg::DeleteMovie(id) => {
+                let callback = self.link
+                    .send_back(move |response: Response<Result<String, Error>>| {
+                        let (meta, _) = response.into_parts();
+                        println!("META: {:?}", meta);
+                        if meta.status.is_success() {
+                            Msg::Main
+                        } else {
+                            Msg::FetchError
+                        }
+                    });
+                let mut uri = String::new();
+                uri.push_str(MOVIE);
+                uri.push_str(&format!("?id={}", id));
+                let request = Request::delete(&uri)
+                    .body(Nothing)
+                    .expect("Failed to construct request");
+                let task = self.fetch_service.fetch(request, callback);
+                self.ft = Some(task);
+
             }
             Msg::AddMovieEditTitle(data) => {
                 if let Scene::AddMovie(movie, _) = &mut self.scene {
@@ -239,10 +261,12 @@ fn view_movie_title((idx, movie): (usize, &Movie)) -> Html<Model> {
     let class = if idx % 2 == 0 { "even" } else { "odd" };
     let title = movie.title.clone();
     let id = movie.id.clone();
+    let id2 = movie.id.clone();
     html! {
         <div class=class,>
             <p>{ title }</p>
             <a onclick=|_| Msg::UpdateMovie(id.clone()),>{ "Edit" }</a>
+            <a onclick=|_| Msg::DeleteMovie(id2.clone()),>{ "Remove" }</a>
         </div>
     }
 }

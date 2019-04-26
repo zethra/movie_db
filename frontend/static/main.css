@@ -5,15 +5,17 @@
 
 .list div {
     padding: 0.2em 0 0.2em 1em;
+    display: flex;
+    justify-content: flex-end;
 }
 
 .list div p {
-    float: left;
+    margin-right: auto;
 }
 
 .list div a {
-    float: right;
-    margin-right: 1em;
+    margin: 1em;
+    cursor: pointer;
 }
 
 .odd {
